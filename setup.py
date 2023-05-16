@@ -51,7 +51,7 @@ setup(
     ),
 
     install_requires=[
-        'numpy',
+        'pyaudio',
     ],
 
     entry_points={

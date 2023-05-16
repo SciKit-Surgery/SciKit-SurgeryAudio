@@ -1,0 +1,6 @@
+[run]
+omit = 
+        ./sksaudio/_version.py
+        ./sksaudio/__init__.py
+        ./sksaudio/__main__.py
+        ./sksaudio/ui/sksaudio_command_line.py

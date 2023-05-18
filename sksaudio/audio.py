@@ -18,12 +18,14 @@ class sksaudio():
         self.length = None
         wave_data = chr(128)
         self.sound_dictionary['silent'] = wave_data
+        self.counter = 0
 
         self.stream = self.pyaudio.open(
                 format = self.pyaudio.get_format_from_width(1),
                 channels = 2, rate = self.bitrate, output = True,
                 stream_callback = self.callback)
 
+        self.stream.start_stream()
         
 
     def __del__(self):
@@ -33,9 +35,14 @@ class sksaudio():
         self.pyaudio.terminate()
 
     def callback(self, in_data, frame_count, time_info, status):
-        print (f"play ended, {frame_count}")
+        self.counter += 1
         wave_data = self.sound_dictionary.get(self.status, False)
-        print(f'Got wave data {wave_data}')
+        if self.status == 'silent':
+            wave_data = ''
+            for _ in range (frame_count):
+                wave_data = wave_data+chr(128)
+        else:
+            print(f'Got wave data {wave_data}')
         if not wave_data:
             number_frames = int(self.bitrate * self.length)
             rest_frames = number_frames % self.bitrate
@@ -49,15 +56,16 @@ class sksaudio():
             for x in range(rest_frames):
                 wave_data = wave_data+chr(128)
 
-            self.sound_dictionary[dictname] = wave_data
-        print(f'returning {wave_data}')
+            self.sound_dictionary[self.status] = wave_data
+        if self.status != 'silent':
+            print (f"play ended, {frame_count}, {self.counter}")
+            print (f'returning {len(wave_data)}')
+        self.status = 'silent'
         return (wave_data, pyaudio.paContinue)
 
 
     def sound(self, length = 5, frequency = 10000):
 
-        dictname = f"{length}_{frequency}"
-        self.status = dictname
+        self.status = f"{length}_{frequency}"
         self.length = length
         self.frequency = frequency
-        self.stream.start_stream()
